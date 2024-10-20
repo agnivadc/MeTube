@@ -3,6 +3,7 @@ import {
   initializeUpload,
   uploadChunk,
   completeUpload,
+  uploadToDb,
 } from "../controllers/multipartupload.controller.js";
 import multer from "multer";
 const upload = multer();
@@ -17,5 +18,8 @@ router.post("/", upload.single("chunk"), uploadChunk);
 
 // Route for completing the upload
 router.post("/complete", completeUpload);
+
+//upload to pg db
+router.post("/uploadToDB", uploadToDb);
 
 export default router;

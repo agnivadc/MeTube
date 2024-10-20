@@ -1,4 +1,5 @@
 import AWS from "aws-sdk";
+import { addVideoDetailsToDB } from "../db/db.js";
 
 // Initialize upload
 export const initializeUpload = async (req, res) => {
@@ -36,7 +37,8 @@ export const initializeUpload = async (req, res) => {
 export const uploadChunk = async (req, res) => {
   try {
     console.log("Uploading Chunk");
-    const { filename, chunkIndex, uploadId } = req.body;
+    const { filename, chunkIndex, uploadId, title, description, author } =
+      req.body;
     const s3 = new AWS.S3({
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -65,7 +67,8 @@ export const uploadChunk = async (req, res) => {
 export const completeUpload = async (req, res) => {
   try {
     console.log("Completing Upload");
-    const { filename, totalChunks, uploadId } = req.body;
+    const { filename, totalChunks, uploadId, title, description, author } =
+      req.body;
     const uploadedParts = [];
 
     // Build uploadedParts array from request body
@@ -104,9 +107,33 @@ export const completeUpload = async (req, res) => {
       .promise();
 
     console.log("data----- ", uploadResult);
+    console.log("Updating data in DB");
+
+    const url = uploadResult.Location;
+    console.log("Video uploaded at ", url);
+
+    await addVideoDetailsToDB(title, description, author, url);
     return res.status(200).json({ message: "Uploaded successfully!!!" });
   } catch (error) {
     console.log("Error completing upload :", error);
     return res.status(500).send("Upload completion failed");
+  }
+};
+
+//upload to pg db
+export const uploadToDb = async (req, res) => {
+  console.log("Adding details to DB");
+  try {
+    const videoDetails = req.body;
+    await addVideoDetailsToDB(
+      videoDetails.title,
+      videoDetails.description,
+      videoDetails.author,
+      videoDetails.url
+    );
+    return res.status(200).send("success");
+  } catch (error) {
+    console.log("Error in adding to DB ", error);
+    return res.status(400).send(error);
   }
 };

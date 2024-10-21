@@ -4,6 +4,8 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import KafkaConfig from "./kafka/kafka.js";
+import convertToHLS from "./hls/transcode.js";
+import s3ToS3 from "./hls/s3Tos3.js";
 
 dotenv.config();
 const app = express();
@@ -19,6 +21,12 @@ app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("HHLD YouTube Transcoder Consumer");
+});
+
+app.get("/transcode", (req, res) => {
+  // convertToHLS();
+  s3ToS3();
+  res.send("Transcoding done!!");
 });
 
 // consumer service - transcoder service
